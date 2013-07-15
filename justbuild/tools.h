@@ -25,6 +25,7 @@ enum ListDirectories
 };
 
 bool isDir(const string& path);
+time_t fileModifiedTime(const string& path);
 list<string> listFilesByExt(const string& path, const string& extension, ListDirectories listDirs = ldOnlyFiles);
 
 

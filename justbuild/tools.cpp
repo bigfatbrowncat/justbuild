@@ -26,6 +26,13 @@ bool isDir(const string& path)
 	   return false;				// It's a file
 }
 
+time_t fileModifiedTime(const string& path)
+{
+	struct stat st;
+	stat(path.c_str(), &st);
+	return st.st_mtime;
+}
+
 list<string> listFilesByExt(const string& path, const string& extension, ListDirectories listDirs)
 {
 	string ext = extension;
