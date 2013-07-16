@@ -18,14 +18,16 @@ int main(int argc, char** argv)
 	test_listFilesByExt();
 
 	// Building Java files
-	FILE* gcc_stream = popen("gcc", "r");		// use _popen here for win32
+	FILE* gcc_stream = popen("gcc", "r");
 	char s[65536];
 	fgets(s, 65535, gcc_stream);
 	printf("[%s]\n", s);
 	pclose(gcc_stream);
 
-	int res = mkdir("../testproj/target/", S_IRUSR | S_IWUSR | S_IXUSR);
-	printf("b:%d", res);
+	MakeDirectoryResult res = makeDirectory("../testproj/target/");
+	if (res == mdrSuccess) printf("success\n");
+	if (res == mdrError) printf("error\n");
+	if (res == mdrAlreadyExists) printf("exists\n");
 
 	return 0;
 }

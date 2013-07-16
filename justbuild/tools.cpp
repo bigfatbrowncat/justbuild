@@ -26,11 +26,44 @@ bool isDir(const string& path)
 	   return false;				// It's a file
 }
 
+bool directoryExists( const char* absolutePath )
+{
+    if( access( absolutePath, 0 ) == 0 ){
+
+        struct stat status;
+        stat( absolutePath, &status );
+
+        return (status.st_mode & S_IFDIR) != 0;
+    }
+    return false;
+}
+
 time_t fileModifiedTime(const string& path)
 {
 	struct stat st;
 	stat(path.c_str(), &st);
 	return st.st_mtime;
+}
+
+MakeDirectoryResult makeDirectory(const char* name)
+{
+	if (directoryExists(name))
+	{
+		return mdrAlreadyExists;
+	}
+	else
+	{
+		int res;
+#ifdef __MINGW32__
+		res = mkdir(name);
+#else
+		res = mkdir(name, S_IRUSR | S_IWUSR | S_IXUSR);
+#endif
+		if (res == 0)
+			return mdrSuccess;
+		else
+			return mdrError;
+	}
 }
 
 list<string> listFilesByExt(const string& path, const string& extension, ListDirectories listDirs)
