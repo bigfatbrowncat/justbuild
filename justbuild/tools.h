@@ -24,8 +24,18 @@ enum ListDirectories
 	ldEverything
 };
 
+enum MakeDirectoryResult
+{
+	mdrSuccess,
+	mdrAlreadyExists,
+	mdrError
+};
+
 bool isDir(const string& path);
+bool directoryExists( const char* absolutePath );
+
 time_t fileModifiedTime(const string& path);
+MakeDirectoryResult makeDirectory(const char* name);
 list<string> listFilesByExt(const string& path, const string& extension, ListDirectories listDirs = ldOnlyFiles);
 
 
