@@ -15,7 +15,8 @@
 int main(int argc, char** argv)
 {
 	// Running tests
-	test_listFilesByExt();
+//	test_listFilesByExt();
+//	test_listFilesByExtRecursively();
 
 	// Building Java files
 	FILE* gcc_stream = popen("gcc", "r");
@@ -24,10 +25,16 @@ int main(int argc, char** argv)
 	printf("[%s]\n", s);
 	pclose(gcc_stream);
 
-	MakeDirectoryResult res = makeDirectory("../testproj/target/");
-	if (res == mdrSuccess) printf("success\n");
+	/*MakeDirectoryResult res = */makeDirectoryRecursively("../testproj/target/a/b/c");
+/*	if (res == mdrSuccess) printf("success\n");
 	if (res == mdrError) printf("error\n");
-	if (res == mdrAlreadyExists) printf("exists\n");
+	if (res == mdrAlreadyExists) printf("exists\n");*/
+
+	list<string> fl = listFilesByExtRecursively("../..", "exe", ldEverything);
+	for (list<string>::iterator iter = fl.begin(); iter != fl.end(); iter++)
+	{
+		printf("%s\n", (*iter).c_str());
+	}
 
 	return 0;
 }

@@ -9,5 +9,6 @@
 #define TOOLS_TEST_H_
 
 bool test_listFilesByExt();
+bool test_listFilesByExtRecursively();
 
 #endif /* TOOLS_TEST_H_ */
