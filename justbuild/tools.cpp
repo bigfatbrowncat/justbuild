@@ -108,3 +108,51 @@ list<string> listFilesByExt(const string& path, const string& extension, ListDir
 	}
 
 }
+
+class TreeItem
+{
+	TreeItem* parent;
+	string name;
+	list<TreeItem> children;
+public:
+	TreeItem(TreeItem& parent, const string& name) : parent(&parent), name(name) {}
+	TreeItem* getParent() const { return parent; }
+	const string& getName() const { return name; }
+	TreeItem* nextSibling() const
+	{
+		list<TreeItem>::iterator iter = parent->children.begin();
+		while (&(*iter) != this)
+		{
+			iter++;
+		}
+		iter++;
+		if (iter == parent->children.end())
+		{
+			return NULL;
+		}
+		else
+		{
+			return &(*iter);
+		}
+	}
+	TreeItem* firstChild()
+	{
+		if (children.size() > 0)
+		{
+			return &(*(children.begin()));
+		}
+		else
+		{
+			return NULL;
+		}
+	}
+	void addChild(const string& name)
+	{
+		children.push_back(TreeItem(*this, name));
+	}
+};
+
+list<string> listFilesByExtRecursively(const string& path, const string& extension, ListDirectories listDirs)
+{
+
+}
