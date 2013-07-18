@@ -39,7 +39,7 @@ string realPath(const string& relativePath);
 list<string> convertToRealPaths(const list<string>& pathList);
 
 MakeDirectoryResult makeDirectory(const string& name);
-bool makeDirectoryRecursively(const string& name);
+bool makeDirectoryTree(const string& name);
 
 list<string> listFilesByExt(const string& path, const string& extension, ListDirectories listDirs = ldOnlyFiles);
 list<string> listFilesByExtRecursively(const string& path, const string& extension, ListDirectories listDirs);

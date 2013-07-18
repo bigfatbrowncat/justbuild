@@ -102,7 +102,7 @@ MakeDirectoryResult makeDirectory(const string& name)
 	}
 }
 
-bool makeDirectoryRecursively(const string& name)
+bool makeDirectoryTree(const string& name)
 {
 	// Making list of directory names
 	vector<string> dirs;
