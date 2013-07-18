@@ -35,6 +35,8 @@ bool isDirectory(const string& path);
 bool directoryExists(const string& name);
 
 time_t fileModifiedTime(const string& name);
+string realPath(const string& relativePath);
+list<string> convertToRealPaths(const list<string>& pathList);
 
 MakeDirectoryResult makeDirectory(const string& name);
 bool makeDirectoryRecursively(const string& name);

@@ -75,7 +75,7 @@ bool test_listFilesByExtRecursively_1()
 	if (res.size() != 1) return false;
 	for (list<string>::iterator iter = res.begin(); iter != res.end(); iter++)
 	{
-		if ((*iter) != "dir.ext") return false;
+		if ((*iter) != "tests/listFilesByExt/dir.ext") return false;
 	}
 	return true;
 }
@@ -86,7 +86,9 @@ bool test_listFilesByExtRecursively_2()
 	if (res.size() != 3) return false;
 	for (list<string>::iterator iter = res.begin(); iter != res.end(); iter++)
 	{
-		if ((*iter) != "dir.ext" && (*iter) != "dir2/f.ext" && (*iter) != "file1.ext") return false;
+		if ((*iter) != "tests/listFilesByExt/dir.ext" &&
+		    (*iter) != "tests/listFilesByExt/dir2/f.ext" &&
+		    (*iter) != "tests/listFilesByExt/file1.ext") return false;
 	}
 	return true;
 }

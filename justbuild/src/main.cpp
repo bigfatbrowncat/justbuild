@@ -19,26 +19,17 @@ int main(int argc, char** argv)
 	test_listFilesByExt();
 	test_listFilesByExtRecursively();
 
-	// Building Java files
-/*	FILE* gcc_stream = popen("gcc", "r");
-	char s[65536];
-	fgets(s, 65535, gcc_stream);
-	printf("[%s]\n", s);
-	pclose(gcc_stream);*/
+	printf("Current directory: %s\n", realPath(".").c_str());
 
-	list<string> ld = listDependencies("src/main.cpp");
-	for (list<string>::iterator iter = ld.begin(); iter != ld.end(); iter++)
+	// Building C++ files
+	string sourcePath = "src";
+	list<string> sourceFiles = convertToRealPaths(listFilesByExtRecursively(sourcePath, "cpp", ldOnlyFiles));
+
+
+	for (list<string>::iterator iter = sourceFiles.begin(); iter != sourceFiles.end(); iter++)
 	{
 		printf("%s\n", (*iter).c_str());
 	}
 
-//	makeDirectoryRecursively("../testproj/target/a/b/c");
-
-/*	list<string> fl = listFilesByExtRecursively("../..", "exe", ldEverything);
-	for (list<string>::iterator iter = fl.begin(); iter != fl.end(); iter++)
-	{
-		printf("%s\n", (*iter).c_str());
-	}
-*/
 	return 0;
 }

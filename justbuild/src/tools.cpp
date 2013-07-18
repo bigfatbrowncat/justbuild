@@ -13,8 +13,18 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <stdlib.h>
+#include <limits.h>
 
 #include "tools.h"
+
+#ifdef __MINGW32__
+	#define REALPATH(N,R)		_fullpath((R),(N),_MAX_PATH)
+	#define PATH_LENGTH			_MAX_PATH
+#else
+	#define REALPATH(N,R)		realpath((N), (R))
+	#define PATH_LENGTH			PATH_MAX
+#endif
 
 using namespace std;
 
@@ -45,6 +55,30 @@ time_t fileModifiedTime(const string& name)
 	struct stat st;
 	stat(name.c_str(), &st);
 	return st.st_mtime;
+}
+
+string realPath(const string& relativePath)
+{
+	char path[PATH_LENGTH];
+	char* res = REALPATH(relativePath.c_str(), path);
+	if (res == NULL)
+	{
+		throw IncorrectPathException();
+	}
+	else
+	{
+		return string(res);
+	}
+}
+
+list<string> convertToRealPaths(const list<string>& pathList)
+{
+	list<string> res;
+	for (list<string>::const_iterator iter = pathList.begin(); iter != pathList.end(); iter++)
+	{
+		res.push_back(realPath(*iter));
+	}
+	return res;
 }
 
 MakeDirectoryResult makeDirectory(const string& name)
@@ -314,7 +348,7 @@ list<string> listFilesByExtRecursively(const string& path, const string& extensi
 				cur = cur->firstChild();
 			}
 
-			pathList.push_back(cur->path());
+			pathList.push_back(path + "/" + cur->path());
 
 			if (cur->nextSibling() != NULL)
 			{
