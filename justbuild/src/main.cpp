@@ -12,6 +12,7 @@
 #include "tools.h"
 #include "gcc_deps_parser.h"
 #include "tools_test.h"
+#include "dep_tree.h"
 
 int main(int argc, char** argv)
 {
@@ -23,13 +24,25 @@ int main(int argc, char** argv)
 
 	// Building C++ files
 	string sourcePath = "src";
-	list<string> sourceFiles = convertToRealPaths(listFilesByExtRecursively(sourcePath, "cpp", ldOnlyFiles));
 
+	DependencyTree depTree;
+
+	list<string> sourceFiles = convertToRealPaths(listFilesByExtRecursively(sourcePath, "cpp", ldOnlyFiles));
 
 	for (list<string>::iterator iter = sourceFiles.begin(); iter != sourceFiles.end(); iter++)
 	{
-		printf("%s\n", (*iter).c_str());
+		DependencyTreeItem* item = depTree.addItem(*iter);
+
+		// Adding dependencies
+		list<string> dependencyFiles = listDependencies(*iter);
+
+		for (list<string>::iterator iter = dependencyFiles.begin(); iter != dependencyFiles.end(); iter++)
+		{
+			item->addDependency(*iter);
+		}
 	}
+
+	depTree.printTree();
 
 	return 0;
 }
