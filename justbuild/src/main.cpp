@@ -15,7 +15,20 @@
 #include "tools_test.h"
 #include "dep_tree.h"
 
-static const int ERROR = 1;
+static const int CANT_LIST_DEPENDENCIES_ERROR = 1;
+static const int CANT_COMPILE_ERROR = 2;
+static const int CANT_LINK_ERROR = 3;
+
+time_t latestModificationTime(const list<string>& files)
+{
+	time_t latest = 0;
+	for (list<string>::const_iterator iter = files.begin(); iter != files.end(); iter++)
+	{
+		time_t mod = fileModifiedTime(*iter);
+		if (mod > latest) latest = mod;
+	}
+	return latest;
+}
 
 int main(int argc, char** argv)
 {
@@ -31,7 +44,7 @@ int main(int argc, char** argv)
 	string sourcePath = "src";
 	string targetObjectPath = "target/obj";
 	string targetBinaryPath = "target/bin";
-	string targetBinaryName = "justbuild.exe";
+	string targetBinaryName = "justbuild";
 
 	list<string> linkerOptions;
 	linkerOptions.push_back("-static-libgcc");
@@ -50,7 +63,7 @@ int main(int argc, char** argv)
 		if (dependencyFiles.size() == 0)
 		{
 			// Just exit
-			return ERROR;
+			return CANT_LIST_DEPENDENCIES_ERROR;
 		}
 
 		for (list<string>::iterator iter = dependencyFiles.begin(); iter != dependencyFiles.end(); iter++)
@@ -64,8 +77,9 @@ int main(int argc, char** argv)
 	}
 	//depTree.printTree();
 
-	// Searching for the most independent source
-	list<string> compiledObjects;
+	// Compiling
+
+	list<string> objects;
 
 	if (!makeDirectoryTree(targetObjectPath))
 	{
@@ -82,21 +96,44 @@ int main(int argc, char** argv)
 		// For each source file we analyze its dependencies
 		if (pathEndsWith(currentFile, ".cpp"))
 		{
-			printf("Compiling %s...\n", replaceBeginning(currentFile, realPath(localPathAbsolute + "/"), "").c_str());
 			string objectFile = replaceRelativePath(currentFile, sourcePath, targetObjectPath) + ".o";
-			compiledObjects.push_back(objectFile);
+			objects.push_back(objectFile);
 
-			int errorCode = compile(currentFile, objectFile);
-			if (errorCode != 0)
+			if (!fileExists(objectFile) ||
+				fileModifiedTime(objectFile) < latestModificationTime((*iter).listDependencyFileNames()) ||
+				fileModifiedTime(objectFile) < fileModifiedTime(currentFile))
 			{
-				printf("Compilation errors. Compiler returned %d\n", errorCode);
+				printf("Compiling %s...\n", replaceBeginning(currentFile, realPath(localPathAbsolute + "/"), "").c_str());
+
+				int errorCode = compile(currentFile, objectFile);
+				if (errorCode != 0)
+				{
+					printf("Compilation errors. Compiler returned %d\n", errorCode);
+					return CANT_COMPILE_ERROR;
+				}
+			}
+			else
+			{
+				printf("Passing %s through...\n", replaceBeginning(currentFile, realPath(localPathAbsolute + "/"), "").c_str());
 			}
 		}
 	}
 
 	string targetFile = realPath(targetBinaryPath + "/" + targetBinaryName);
+
+#ifdef __MINGW32__
+	// For Windows we add .exe to the binary
+	targetFile += ".exe";
+#endif
+
 	printf("Linking %s...\n", replaceBeginning(targetFile, realPath(localPathAbsolute + "/"), "").c_str());
-	link(compiledObjects, targetFile, linkerOptions);
+
+	int errorCode = link(objects, targetFile, linkerOptions);
+	if (errorCode != 0)
+	{
+		printf("Linking error. Linker returned %d\n", errorCode);
+		return CANT_LINK_ERROR;
+	}
 
 	return 0;
 }

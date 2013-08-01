@@ -125,6 +125,17 @@ const list<DependencyTreeItem*>& DependencyTreeItem::listDependencyFiles() const
 	return dependencies;
 }
 
+const list<string> DependencyTreeItem::listDependencyFileNames() const
+{
+	list<string> res;
+	for (list<DependencyTreeItem*>::const_iterator iter = dependencies.begin(); iter != dependencies.end(); iter++)
+	{
+		res.push_back((*iter)->getFileName());
+	}
+	return res;
+}
+
+
 void DependencyTreeItem::printTreeItem(int indent)
 {
 	for (int i = 0; i < indent; i++) printf("\t");

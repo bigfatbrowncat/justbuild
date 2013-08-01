@@ -50,6 +50,19 @@ bool directoryExists(const string& name)
     }
 }
 
+bool fileExists(const string& name)
+{
+    if (access(name.c_str(), 0) == 0)
+    {
+        return !isDirectory(name);
+    }
+    else
+    {
+    	return false;
+    }
+}
+
+
 time_t fileModifiedTime(const string& name)
 {
 	struct stat st;

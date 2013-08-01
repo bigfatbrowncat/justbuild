@@ -34,6 +34,8 @@ enum MakeDirectoryResult
 bool isDirectory(const string& path);
 bool directoryExists(const string& name);
 
+bool fileExists(const string& name);
+
 time_t fileModifiedTime(const string& name);
 string realPath(const string& relativePath);
 list<string> convertToRealPaths(const list<string>& pathList);
