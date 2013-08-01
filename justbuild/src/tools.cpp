@@ -376,3 +376,33 @@ list<string> listFilesByExtRecursively(const string& path, const string& extensi
 
 	return pathList;
 }
+
+bool pathBeginsWith(string path, string beginning)
+{
+	return (path.length() >= beginning.length()) && path.substr(0, beginning.length()) == beginning;
+}
+
+bool pathEndsWith(string path, string ending)
+{
+	return (path.length() >= ending.length()) && (path.substr(path.length() - ending.length()) == ending);
+}
+
+string replaceRelativePath(string path, string oldBeginning, string newBeginning)
+{
+	string rpath = realPath(path);
+	string rold = realPath(oldBeginning + "/");
+	string rnew = realPath(newBeginning + "/");
+
+	return replaceBeginning(rpath, rold, rnew);
+
+}
+
+string replaceBeginning(string path, string oldBeginning, string newBeginning)
+{
+	if (pathBeginsWith(path, oldBeginning))
+	{
+		return path.replace(0, oldBeginning.length(), newBeginning);
+	}
+	else
+		return path;
+}

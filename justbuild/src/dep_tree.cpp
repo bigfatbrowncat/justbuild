@@ -120,7 +120,7 @@ bool DependencyTreeItem::addDependency(const string& fileName)
 	}
 }
 
-const list<DependencyTreeItem*>& DependencyTreeItem::listDependencyFiles()
+const list<DependencyTreeItem*>& DependencyTreeItem::listDependencyFiles() const
 {
 	return dependencies;
 }

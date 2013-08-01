@@ -51,7 +51,7 @@ public:
 
 	const string& getFileName() const { return fileName; }
 	DependencyTreeItem* findDependencyFile(const string& fileName);
-	const list<DependencyTreeItem*>& listDependencyFiles();
+	const list<DependencyTreeItem*>& listDependencyFiles() const;
 };
 
 #endif /* DEP_TREE_H_ */

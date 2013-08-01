@@ -55,14 +55,18 @@ list<string> listDependencies(const string& sourceName)
 			gccm += s;
 		}
 	}
-	pclose(gcc_stream);
 
-	gccm = replaceString(gccm, (string)"\\\n", (string)"");
-	gccm = replaceString(gccm, (string)"\n", (string)"");
-	list<string> files = split(gccm, " ", false);
+	list<string> files;
 
-	files.erase(files.begin());		// Removing o:
-	files.erase(files.begin());		// Removing the file itself
+	if (pclose(gcc_stream) == 0)
+	{
+		gccm = replaceString(gccm, (string)"\\\n", (string)"");
+		gccm = replaceString(gccm, (string)"\n", (string)"");
+		files = split(gccm, " ", false);
+
+		files.erase(files.begin());		// Removing o:
+		files.erase(files.begin());		// Removing the file itself
+	}
 
 	return files;
 }

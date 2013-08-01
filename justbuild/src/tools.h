@@ -44,5 +44,10 @@ bool makeDirectoryTree(const string& name);
 list<string> listFilesByExt(const string& path, const string& extension, ListDirectories listDirs = ldOnlyFiles);
 list<string> listFilesByExtRecursively(const string& path, const string& extension, ListDirectories listDirs);
 
+bool pathBeginsWith(string path, string beginning);
+bool pathEndsWith(string path, string ending);
+string replaceRelativePath(string path, string oldBeginning, string newBeginning);
+string replaceBeginning(string path, string oldBeginning, string newBeginning);
+
 
 #endif /* TOOLS_H_ */
