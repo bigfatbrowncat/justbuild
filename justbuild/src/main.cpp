@@ -249,7 +249,7 @@ int main(int argc, char** argv)
 	{
 		DependencyTreeItem* item = depTree.addItem(*iter);
 		// Adding dependencies
-		list<string> dependencyFiles = listDependencies(*iter);
+		list<string> dependencyFiles = listDependencies(*iter, includes);
 		if (dependencyFiles.size() == 0)
 		{
 			// Just exit
@@ -295,7 +295,7 @@ int main(int argc, char** argv)
 			{
 				printf("Compiling %s...\n", replaceBeginning(currentFile, realPath(localPathAbsolute + "/"), "").c_str());
 
-				int errorCode = compile(currentFile, objectFile);
+				int errorCode = compile(currentFile, includes, objectFile, showDebugInfo);
 				if (errorCode != 0)
 				{
 					printf("Compilation errors. Compiler returned %d\n", errorCode);

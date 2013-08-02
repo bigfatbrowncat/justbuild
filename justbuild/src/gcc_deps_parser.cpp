@@ -43,9 +43,15 @@ list<string> split(const string& s, const string& delim, const bool keep_empty =
     return result;
 }
 
-list<string> listDependencies(const string& sourceName)
+list<string> listDependencies(const string& sourceName, const list<string>& includes)
 {
-	FILE* gcc_stream = popen(((string)"gcc -M " + sourceName).c_str(), "r");
+	string includesLine = "";
+	for (list<string>::const_iterator iter = includes.begin(); iter != includes.end(); iter++)
+	{
+		includesLine += "-I" + (*iter) + " ";
+	}
+
+	FILE* gcc_stream = popen(((string)"gcc -M " + includesLine + sourceName).c_str(), "r");
 	char s[128];
 	string gccm = "";
 	while (!feof(gcc_stream))

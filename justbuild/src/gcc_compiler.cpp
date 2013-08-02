@@ -30,9 +30,15 @@ int launchGCC(string arguments, bool showCommand)
 	return result;
 }
 
-int compile(const string& sourceName, const string& targetObjectName, bool showCommand)
+int compile(const string& sourceName, const list<string>& includes, const string& targetObjectName, bool showCommand)
 {
-	string arguments = (string)"-c " + sourceName + " -o " + targetObjectName;
+	string includesLine = "";
+	for (list<string>::const_iterator iter = includes.begin(); iter != includes.end(); iter++)
+	{
+		includesLine += "-I" + (*iter) + " ";
+	}
+
+	string arguments = (string)"-c " + sourceName + " " + includesLine + " -o " + targetObjectName;
 
 	return launchGCC(arguments, showCommand);
 }

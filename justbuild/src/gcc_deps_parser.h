@@ -12,7 +12,6 @@
 #include <list>
 using namespace std;
 
-list<string> listDependencies(const string& sourceName);
-
+list<string> listDependencies(const string& sourceName, const list<string>& includes);
 
 #endif /* C_DEPS_PARSER_H_ */
