@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<just-unit>
+	<build>
+		<cpp target="target">
+			<compiler source="src" objects="obj">
+				<includes>
+					<include>include</include>
+				</includes>
+			</compiler>
+			<linker objects="obj" binary="bin" target-binary-name="justbuild">
+				<options>
+					<option>-static</option>
+				</options>
+			</linker>
+		</cpp>
+	</build>
+	
+	<build platform="windows">
+		<cpp target="target">
+			<linker objects="obj" binary="bin" target-binary-name="justbuild">
+				<options>
+					<option>-static-libgcc</option>
+					<option>-static-libstdc++</option>
+				</options>
+			</linker>
+		</cpp>
+	</build>
+</just-unit>

@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+#include "rapidxml-1.13/rapidxml.hpp"
+
 #include "tools.h"
 #include "gcc_deps_parser.h"
 #include "gcc_compiler.h"
@@ -18,6 +20,45 @@
 static const int CANT_LIST_DEPENDENCIES_ERROR = 1;
 static const int CANT_COMPILE_ERROR = 2;
 static const int CANT_LINK_ERROR = 3;
+
+static const int CONFIG_ERROR = 4;
+
+using namespace std;
+using namespace rapidxml;
+
+class XMLFile
+{
+private:
+	char* fileContents;
+	xml_document<> document;
+public:
+	XMLFile(const string& fileName)
+	{
+		FILE* xmlFile = fopen(fileName.c_str(), "r");
+		char s[65536];
+		string xmlString = "";
+		while (!feof(xmlFile))
+		{
+			if (fgets(s, 128, xmlFile) != NULL)
+			{
+				xmlString += s;
+			}
+		}
+		fileContents = new char[xmlString.length()];
+		strcpy(fileContents, xmlString.c_str());
+
+		document.parse<0>(fileContents);    // 0 means default parse flags
+
+	}
+
+	xml_document<>* getDocument() { return &document; }
+
+	~XMLFile()
+	{
+		delete [] fileContents;
+	}
+};
+
 
 time_t latestModificationTime(const list<string>& files)
 {
@@ -36,20 +77,169 @@ int main(int argc, char** argv)
 	test_listFilesByExt();
 	test_listFilesByExtRecursively();
 
+	bool showDebugInfo = false;
+
+	// Reading just.xml
+	XMLFile justXMLFile("just.xml");
+
+	xml_document<>* justXMLDoc = justXMLFile.getDocument();
+	xml_node<> *justUnitNode = justXMLDoc->first_node();
+	if ((string)(justUnitNode->name()) != string("just-unit"))
+	{
+		printf("The root node of the configuration file should be a <just-unit> node");
+		return CONFIG_ERROR;
+	}
+	else if (justUnitNode->next_sibling() != NULL)
+	{
+		printf("There should be only one root node in configuration file");
+		return CONFIG_ERROR;
+	}
+
+	string target, sourcePath, objectsPath, binary, targetBinaryName;
+	list<string> includes, linkerOptions;
+
+	for (xml_node<>* buildNode = justUnitNode->first_node(); buildNode != NULL; buildNode = buildNode->next_sibling())
+	{
+		if ((string)(buildNode->name()) == string("build"))
+		{
+			for (xml_node<>* cppNode = buildNode->first_node(); cppNode != NULL; cppNode = cppNode->next_sibling())
+			{
+				if ((string)(cppNode->name()) == string("cpp"))
+				{
+
+					// Reading attributes
+					for (xml_attribute<>* attr = cppNode->first_attribute(); attr != NULL; attr = attr->next_attribute())
+					{
+						if ((string)(attr->name()) == string("target"))
+						{
+							target = attr->value();
+						}
+						else
+						{
+							printf("Incorrect attribute in <cpp> node. Only target=\"...\" allowed");
+							return CONFIG_ERROR;
+						}
+					}
+
+					for (xml_node<>* compilerLinkerNode = cppNode->first_node(); compilerLinkerNode != NULL; compilerLinkerNode = compilerLinkerNode->next_sibling())
+					{
+						if ((string)(compilerLinkerNode->name()) == string("compiler"))
+						{
+							// Reading attributes
+							for (xml_attribute<>* attr = compilerLinkerNode->first_attribute(); attr != NULL; attr = attr->next_attribute())
+							{
+								if ((string)(attr->name()) == string("source"))
+								{
+									sourcePath = attr->value();
+								}
+								else if ((string)(attr->name()) == string("objects"))
+								{
+									objectsPath = attr->value();
+								}
+								else
+								{
+									printf("Incorrect attribute in <compiler> node. Only source=\"...\", objects=\"...\",  allowed");
+									return CONFIG_ERROR;
+								}
+							}
+
+							for (xml_node<>* includesNode = compilerLinkerNode->first_node(); includesNode != NULL; includesNode = includesNode->next_sibling())
+							{
+								if ((string)(includesNode->name()) == string("includes"))
+								{
+									for (xml_node<>* includeNode = includesNode->first_node(); includeNode != NULL; includeNode = includeNode->next_sibling())
+									{
+										if ((string)(includeNode->name()) == string("include"))
+										{
+											includes.push_back(includeNode->value());
+										}
+										else
+										{
+											printf("Incorrect node inside <includes> node. Only <include> nodes allowed");
+											return CONFIG_ERROR;
+										}
+									}
+								}
+							}
+						}
+						else if ((string)(compilerLinkerNode->name()) == string("linker"))
+						{
+							// Reading attributes
+							for (xml_attribute<>* attr = compilerLinkerNode->first_attribute(); attr != NULL; attr = attr->next_attribute())
+							{
+								if ((string)(attr->name()) == string("binary"))
+								{
+									binary = attr->value();
+								}
+								else if ((string)(attr->name()) == string("objects"))
+								{
+									objectsPath = attr->value();
+								}
+								else if ((string)(attr->name()) == string("target-binary-name"))
+								{
+									targetBinaryName = attr->value();
+								}
+								else
+								{
+									printf("Incorrect attribute in <compiler> node. Only source=\"...\", objects=\"...\",  allowed");
+									return CONFIG_ERROR;
+								}
+							}
+
+							for (xml_node<>* optionsNode = compilerLinkerNode->first_node(); optionsNode != NULL; optionsNode = optionsNode->next_sibling())
+							{
+								if ((string)(optionsNode->name()) == string("options"))
+								{
+									for (xml_node<>* optionNode = optionsNode->first_node(); optionNode != NULL; optionNode = optionNode->next_sibling())
+									{
+										if ((string)(optionNode->name()) == string("option"))
+										{
+											linkerOptions.push_back(optionNode->value());
+										}
+										else
+										{
+											printf("Incorrect node inside <options> node. Only <option> nodes allowed");
+											return CONFIG_ERROR;
+										}
+									}
+								}
+							}
+						}
+						else
+						{
+							printf("Incorrect node inside <cpp> node. Only <compiler> and <linker> nodes allowed");
+							return CONFIG_ERROR;
+						}
+					}
+				}
+				else
+				{
+					printf("Incorrect node inside <build> node. Only <cpp> nodes allowed");
+					return CONFIG_ERROR;
+				}
+			}
+		}
+		else
+		{
+			printf("Incorrect node inside <just-unit> node. Only <build> nodes allowed");
+			return CONFIG_ERROR;
+		}
+	}
+
+
 	string localPathAbsolute = realPath("./");
-	printf("Current directory: %s\n", localPathAbsolute.c_str());
+	if (showDebugInfo) printf("Current directory: %s\n", localPathAbsolute.c_str());
 
 	// ** Building C++ files **
 
-	string sourcePath = "src";
-	string targetObjectPath = "target/obj";
-	string targetBinaryPath = "target/bin";
-	string targetBinaryName = "justbuild";
+	string targetObjectPath = target + "/" + objectsPath;// "target/obj";
+	string targetBinaryPath = target + "/" + binary;// "target/bin";
+	//string targetBinaryName = "justbuild";
 
-	list<string> linkerOptions;
-	linkerOptions.push_back("-static-libgcc");
-	linkerOptions.push_back("-static-libstdc++");
-	linkerOptions.push_back("-static");
+	//list<string> linkerOptions = ;
+	//linkerOptions.push_back("-static-libgcc");
+	//linkerOptions.push_back("-static-libstdc++");
+	//linkerOptions.push_back("-static");
 
 	// Building the dependency tree
 
@@ -79,7 +269,7 @@ int main(int argc, char** argv)
 
 	// Compiling
 
-	list<string> objects;
+	list<string> objectFiles;
 
 	if (!makeDirectoryTree(targetObjectPath))
 	{
@@ -97,7 +287,7 @@ int main(int argc, char** argv)
 		if (pathEndsWith(currentFile, ".cpp"))
 		{
 			string objectFile = replaceRelativePath(currentFile, sourcePath, targetObjectPath) + ".o";
-			objects.push_back(objectFile);
+			objectFiles.push_back(objectFile);
 
 			if (!fileExists(objectFile) ||
 				fileModifiedTime(objectFile) < latestModificationTime((*iter).listDependencyFileNames()) ||
@@ -114,7 +304,10 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-				printf("Passing %s through...\n", replaceBeginning(currentFile, realPath(localPathAbsolute + "/"), "").c_str());
+				if (showDebugInfo)
+				{
+					printf("Leaving %s unchanged...\n", replaceBeginning(currentFile, realPath(localPathAbsolute + "/"), "").c_str());
+				}
 			}
 		}
 	}
@@ -126,14 +319,26 @@ int main(int argc, char** argv)
 	targetFile += ".exe";
 #endif
 
-	printf("Linking %s...\n", replaceBeginning(targetFile, realPath(localPathAbsolute + "/"), "").c_str());
-
-	int errorCode = link(objects, targetFile, linkerOptions);
-	if (errorCode != 0)
+	if (!fileExists(targetFile) ||
+	    fileModifiedTime(targetFile) < latestModificationTime(objectFiles))
 	{
-		printf("Linking error. Linker returned %d\n", errorCode);
-		return CANT_LINK_ERROR;
+		printf("Linking %s...\n", replaceBeginning(targetFile, realPath(localPathAbsolute + "/"), "").c_str());
+
+		int errorCode = link(objectFiles, targetFile, linkerOptions);
+		if (errorCode != 0)
+		{
+			printf("Linking error. Linker returned %d\n", errorCode);
+			return CANT_LINK_ERROR;
+		}
+	}
+	else
+	{
+		if (showDebugInfo)
+		{
+			printf("Leaving %s unchanged...\n", replaceBeginning(targetFile, realPath(localPathAbsolute + "/"), "").c_str());
+		}
 	}
 
+	printf("Everything has been done\n");
 	return 0;
 }
